@@ -24,12 +24,13 @@
 (setq use-package-always-ensure nil)
 (use-package org)
 ;;(defcustom ssmm/cfg-file (concat user-emacs-directory "config")
-(setq ssmm/cfg-file (concat "/home/bob/Projects/src/emacs/emacs_config_tyson/" "config"))
+;;(setq ssmm/cfg-dir "/home/bob/.emacs.d/")
+(setq ssmm/cfg-dir "/home/bob/Projects/src/emacs/emacs_config_tyson/")
+(setq ssmm/cfg-file (concat ssmm/cfg-dir "config"))
 ;;  "The base name for the .org file to use for Emacs initialization.")
 (when (file-newer-than-file-p (concat ssmm/cfg-file ".org") (concat ssmm/cfg-file ".el"))
   (org-babel-tangle-file (concat ssmm/cfg-file ".org")))
-;(load ssmm/cfg-file)
-(message (concat "cfg file is " ssmm/cfg-file))
+(load ssmm/cfg-file)
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime)
 ;; End:

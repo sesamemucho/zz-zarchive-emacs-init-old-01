@@ -97,7 +97,8 @@ This is for values that should be set before anything else.
 #+begin_src emacs-lisp
     (setq debug-on-error t)
     (add-to-list 'load-path (concat ssmm/cfg-dir "lisp"))
-    (add-to-list 'default-frame-alist '(font . "Inconsolata-14" ))
+    ;;(add-to-list 'default-frame-alist '(font . "Inconsolata-14" ))
+    (add-to-list 'default-frame-alist '(font . "-ADBO-Source Code Variable-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1" ))
 
 
     (menu-bar-mode -1)
@@ -715,23 +716,40 @@ git.
   (setq pinboard-api-token "grumpydog:D2F6E5673E8251BD9E80"))
 #+end_src
 
+** Hydra
+#+BEGIN_SRC emacs-lisp
+(use-package hydra
+  :defer t
+  :config
+  (defhydra hydra-zoom (global-map "<f2>")
+    "zoom"
+    ("g" text-scale-increase "in")
+    ("l" text-scale-decrease "out")))
+
+
+#+END_SRC
 ** Org mode
 #+begin_src emacs-lisp
-    (assq-delete-all 'org package--builtins)
-    (use-package org
-    :ensure org-plus-contrib
-    :demand
-    :config
-    (load-library "org")
-    (load-library "org-contacts")
-    (load-library "org-macs")
-    (load-library "org-src")
-    )
-;;  (load-library "org")
-;;  (load-library "org-contacts")
-;;  (load-library "org-macs")
-;;  (load-library "org-src")
-;;
+      (assq-delete-all 'org package--builtins)
+      (use-package org
+      :ensure org-plus-contrib
+      :demand
+      :config
+      (load-library "org")
+      (load-library "org-contacts")
+      (load-library "org-macs")
+      (load-library "org-src")
+      (load-library "org-compat")
+      ;; (require 'org-contacts)
+      ;; (require 'org-macs)
+      ;; (require 'org-src)
+      )
+
+  ;;  (load-library "org")
+  ;;  (load-library "org-contacts")
+  ;;  (load-library "org-macs")
+  ;;  (load-library "org-src")
+  ;;
 #+end_src
 
 Configuration for the eminently useful [[http://orgmode.org/][Org Mode]].
@@ -768,7 +786,114 @@ For convenience, inside code blocks indent according to the block mode:
   (setq org-src-tab-acts-natively t)
 #+end_src
 
-**** General org-y stuff
+*** Note taking
+From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosystem/
+
+**** org-roam
+     #+begin_src emacs-lisp
+       (use-package org-roam
+             :hook 
+             (after-init . org-roam-mode)
+             ;;:straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+             :custom
+             (org-roam-directory "/home/bob/org/roam/")
+             :bind (:map org-roam-mode-map
+                     (("C-c n l" . org-roam)
+                      ("C-c n f" . org-roam-find-file)
+                      ("C-c n b" . org-roam-switch-to-buffer)
+                      ("C-c n g" . org-roam-show-graph))
+                     :map org-mode-map
+                     (("C-c n i" . org-roam-insert))))
+
+     #+end_src
+
+**** Deft
+
+[[https://jblevins.org/projects/deft/][Deft]] provides a nice interface for browsing and filtering org-roam notes.
+
+#+begin_export emacs-lisp
+(use-package deft
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory "/home/bob/org/roam/"))
+#+end_export
+
+**** Org-journal
+
+[[https://github.com/bastibe/org-journal][Org-journal]] is a more powerful alternative to the simple function org-roam-today. It provides better journaling capabilities, and a nice calendar interface to see all dated entries.
+
+#+begin_export emacs-lisp
+(use-package org-journal
+  :bind
+  ("C-c n j" . org-journal-new-entry)
+  :custom
+  (org-journal-date-prefix "#+TITLE: ")
+  (org-journal-file-format "%Y-%m-%d.org")
+  (org-journal-dir "/home/bob/org/roam/")
+  (org-journal-date-format "%A, %d %B %Y"))
+#+end_export
+
+**** Org-download
+
+[[https://github.com/abo-abo/org-download][Org-download]] lets you screenshot and yank images from the web into your notes:
+
+#+begin_src emacs-lisp
+(use-package org-download
+  :after org
+  :bind
+  (:map org-mode-map
+        (("s-Y" . org-download-screenshot)
+         ("s-y" . org-download-yank))))
+#+end_src
+
+**** mathpix.el
+
+[[https://github.com/jethrokuan/mathpix.el][mathpix.el]] uses [[https://mathpix.com/][Mathpix's]] API to convert clips into latex equations:
+
+#+begin_src emacs-lisp
+  ;; (use-package mathpix.el
+  ;;   :straight (:host github :repo "jethrokuan/mathpix.el")
+  ;;   :custom ((mathpix-app-id "app-id")
+  ;;            (mathpix-app-key "app-key"))
+  ;;   :bind
+  ;;   ("C-x m" . mathpix-screenshot))
+#+end_src
+
+**** Org-noter / Interleave
+
+[[https://github.com/weirdNox/org-noter][Org-noter]] and Interleave are both projects that allow synchronised
+annotation of documents (PDF, EPUB etc.) within Org-mode.
+
+#+begin_src emacs-lisp
+  (use-package org-noter
+  :after org
+  :config
+  (setq org-noter-default-notes-file-names '("noter.org"))
+  (setq org-noter-notes-search-path '("~/org/notes"))
+)
+
+#+end_src
+
+**** Spaced Repetition
+
+[[https://github.com/l3kn/org-fc/][Org-fc]] is a spaced repetition system that scales well with a large
+number of files. Other alternatives include org-drill, and pamparam.
+
+#+begin_src emacs-lisp
+  ;; (use-package org-fc
+  ;;   :straight (org-fc :type git :host github :repo "l3kn/org-fc")
+  ;;   :custom
+  ;;   (org-fc-directories '("~/org/fc/"))
+  ;;   :config
+  ;;   (require 'org-fc-hydra))
+#+end_src
+
+*** General org-y stuff
 
 Enable misc org modules:
 #+BEGIN_SRC emacs-lisp
@@ -805,80 +930,80 @@ Common org tags.
                           ("@computer" . ?c)
                           (:endgroup)))
 #+end_src
-**** habits
+*** habits
 
- «Org has the ability to track the consistency of a special category of
- TODOs, called “habits”.»
+«Org has the ability to track the consistency of a special category of
+TODOs, called “habits”.»
 
- - http://orgmode.org/manual/Tracking-your-habits.html
- - http://orgmode.org/worg/org-tutorials/tracking-habits.html
+- http://orgmode.org/manual/Tracking-your-habits.html
+- http://orgmode.org/worg/org-tutorials/tracking-habits.html
 
- - global STYLE property values for completion
- #+BEGIN_SRC emacs-lisp
-   (setq org-global-properties (quote (("STYLE_ALL" . "habit"))))
- #+END_SRC
+- global STYLE property values for completion
+#+BEGIN_SRC emacs-lisp
+  (setq org-global-properties (quote (("STYLE_ALL" . "habit"))))
+#+END_SRC
 
- - position the habit graph on the agenda to the right of the default
- #+BEGIN_SRC emacs-lisp
-   (setq org-habit-graph-column 50)
- #+END_SRC
+- position the habit graph on the agenda to the right of the default
+#+BEGIN_SRC emacs-lisp
+  (setq org-habit-graph-column 50)
+#+END_SRC
 
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 
-   ;; Automatically tracks when TODO items are DONEd.
-   (setq org-log-done 'time)
+  ;; Automatically tracks when TODO items are DONEd.
+  (setq org-log-done 'time)
 
-   ;; A default name to give context to some of the elisp farther down.
-   ;; It generally gets changed in a system or user file.
-   (setq ssmm-org-main-file (expand-file-name "~/org/organizer.org"))
+  ;; A default name to give context to some of the elisp farther down.
+  ;; It generally gets changed in a system or user file.
+  (setq ssmm-org-main-file (expand-file-name "~/org/organizer.org"))
 
-  (defun ssmm-org-make-checkbox ()
-    "Make this line into a checkbox"
-    (interactive)
-    (beginning-of-line)
-    (insert " - [ ] "))
+ (defun ssmm-org-make-checkbox ()
+   "Make this line into a checkbox"
+   (interactive)
+   (beginning-of-line)
+   (insert " - [ ] "))
 
-  (defun ssmm-org-auto-fill ()
-    (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
-    )
+ (defun ssmm-org-auto-fill ()
+   (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
+   )
 
-  (defun my-org-mode-hook ()
-    (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
-    (local-set-key (kbd "C-<f9>") 'org-metaright)
-    (ssmm-org-auto-fill)
-    )
+ (defun my-org-mode-hook ()
+   (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
+   (local-set-key (kbd "C-<f9>") 'org-metaright)
+   (ssmm-org-auto-fill)
+   )
 
-  (add-hook 'org-mode-hook 'my-org-mode-hook t)
-  ;(setq prelude-org-mode-hook nil)
+ (add-hook 'org-mode-hook 'my-org-mode-hook t)
+ ;(setq prelude-org-mode-hook nil)
 
-     (defun ssmm-org-make-checkbox ()
-       "Make this line into a checkbox"
-       (interactive)
-       (beginning-of-line)
-       (insert " - [ ] "))
+    (defun ssmm-org-make-checkbox ()
+      "Make this line into a checkbox"
+      (interactive)
+      (beginning-of-line)
+      (insert " - [ ] "))
 
-     (defun ssmm-org-auto-fill ()
-       (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
-       )
+    (defun ssmm-org-auto-fill ()
+      (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
+      )
 
-     (defun my-org-mode-hook ()
-       (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
-       (local-set-key (kbd "C-<f9>") 'org-metaright)
-       (ssmm-org-auto-fill)
-       )
+    (defun my-org-mode-hook ()
+      (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
+      (local-set-key (kbd "C-<f9>") 'org-metaright)
+      (ssmm-org-auto-fill)
+      )
 
-     (add-hook 'org-mode-hook 'my-org-mode-hook t)
-     ;(setq prelude-org-mode-hook nil)
+    (add-hook 'org-mode-hook 'my-org-mode-hook t)
+    ;(setq prelude-org-mode-hook nil)
 
-     (defun ssmm/org-open-other-frame ()
-       "Jump to bookmark in another frame. See `bookmark-jump' for more."
-       (interactive)
-       (let ((org-link-frame-setup (acons 'file 'find-file-other-frame org-link-frame-setup)))
-         (org-open-at-point)))
+    (defun ssmm/org-open-other-frame ()
+      "Jump to bookmark in another frame. See `bookmark-jump' for more."
+      (interactive)
+      (let ((org-link-frame-setup (acons 'file 'find-file-other-frame org-link-frame-setup)))
+        (org-open-at-point)))
 
- #+end_src
+#+end_src
 
-**** Org agenda
+*** Org agenda
 org agenda stuff is from
 [[https://raw.githubusercontent.com/novoid/dot-emacs/master/config.org][Karl Voit's config file]] and
 [[https://github.com/alphapapa/org-super-agenda][Supercharge your Org daily/weekly agenda by grouping items]]
@@ -1373,45 +1498,52 @@ From
 *** Capturing
 
 #+begin_src emacs-lisp
-    (setq org-capture-templates '(("t" "Todo [inbox]" entry
-                                   (file+headline "~/org/pim/inbox.org" "Tasks")
-                                   "* TODO %i%?")
-                                  ("T" "Tickler" entry
-                                   (file+headline "~/org/pim/tickler.org" "Tickler")
-                                   "* %i%? \n %U")
-                                  ("j" "Journal" entry (file+datetree ssmm-org-main-file)
-                                   "* %?\nEntered on %T\n  %i\n" :clock-keep t)
-                                  ("p" "New project entry" entry (file+olp ssmm-org-main-file "Projects")
-                                   "* %?\nEntered on %T\n" :unnarrowed t)
-                                  ))
+      (setq org-capture-templates '(("t" "Todo [inbox]" entry
+                                     (file+headline "~/org/pim/inbox.org" "Tasks")
+                                     "* TODO %i%?")
+                                    ("T" "Tickler" entry
+                                     (file+headline "~/org/pim/tickler.org" "Tickler")
+                                     "* %i%? \n %U")
+                                    ("j" "Journal" entry (file+datetree ssmm-org-main-file)
+                                     "* %?\nEntered on %T\n  %i\n" :clock-keep t)
+                                    ("p" "New project entry" entry (file+olp ssmm-org-main-file "Projects")
+                                     "* %?\nEntered on %T\n" :unnarrowed t)
+                                    ("Q" "quote org capture" entry
+                                     (file+headline "~/org/pim/clippings.org" "Unsorted")
+                                     "* %?%:description Added %U
+,#+BEGIN_QUOTE
+%x
+,#+END_QUOTE" :immediate-finish t)
+)
+)
 
-        (global-set-key "\C-cl" 'org-store-link)
-        (global-set-key "\C-cc" 'org-capture)
-        (global-set-key "\C-ca" 'org-agenda)
-        (global-set-key "\C-cb" 'org-iswitchb)
+          (global-set-key "\C-cl" 'org-store-link)
+          (global-set-key "\C-cc" 'org-capture)
+          (global-set-key "\C-ca" 'org-agenda)
+          (global-set-key "\C-cb" 'org-iswitchb)
 
-  (setq org-refile-targets '(("~/org/pim/gtd.org" :maxlevel . 3)
-                             ("~/org/pim/someday.org" :level . 1)
-                             ("~/org/pim/tickler.org" :maxlevel . 2)))
+    (setq org-refile-targets '(("~/org/pim/gtd.org" :maxlevel . 3)
+                               ("~/org/pim/someday.org" :level . 1)
+                               ("~/org/pim/tickler.org" :maxlevel . 2)))
 
-      (defun ssmm-get-projects ()
-      "Get a list of current projects.
-       This will be a list of the 2nd-level headings under a 1st-level
-       heading named 'Projects', in `ssmm-org-main-file'.
-       "
-        (interactive)
-        (with-current-buffer (file-name-nondirectory ssmm-org-main-file)
-          (org-element-map (org-element-parse-buffer) 'headline
-            (lambda (headline)
-              (let* ((parent (org-element-property :parent headline))
-                     (foo1 (org-element-property :title parent)))
-                                              ;(and foo1 (message (format "Got %s" (substring-no-properties (car foo1)))))
-                (and (eq (org-element-type parent) 'headline)
-                     (string= (org-element-property :raw-value parent) "Projects")
-                     (= (org-element-property :level parent) 1)
-                     (org-element-property :raw-value headline)
-                     )))))
-        )
+        (defun ssmm-get-projects ()
+        "Get a list of current projects.
+         This will be a list of the 2nd-level headings under a 1st-level
+         heading named 'Projects', in `ssmm-org-main-file'.
+         "
+          (interactive)
+          (with-current-buffer (file-name-nondirectory ssmm-org-main-file)
+            (org-element-map (org-element-parse-buffer) 'headline
+              (lambda (headline)
+                (let* ((parent (org-element-property :parent headline))
+                       (foo1 (org-element-property :title parent)))
+                                                ;(and foo1 (message (format "Got %s" (substring-no-properties (car foo1)))))
+                  (and (eq (org-element-type parent) 'headline)
+                       (string= (org-element-property :raw-value parent) "Projects")
+                       (= (org-element-property :level parent) 1)
+                       (org-element-property :raw-value headline)
+                       )))))
+          )
 
 
 #+end_src
@@ -1478,10 +1610,12 @@ code block.
 
 #+begin_src emacs-lisp
     (use-package org-tempo
-      :defer t
+      :defer 1
       :config
       (setq org-use-speed-commands t)
-      (add-to-list 'org-structure-template-alist '("S" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+      (add-to-list 'org-structure-template-alist '("S" . "src emacs-lisp"))
+      (add-to-list 'org-structure-template-alist '("b" . "src sh"))
+      (add-to-list 'org-structure-template-alist '("B" . "src sh ? :results output verbatim drawer "))
 
       ;; (setq org-structure-template-alist
       ;;       '(
@@ -1791,7 +1925,7 @@ file using the `org-babel-lob-ingest' function.
 #+begin_src emacs-lisp
   (use-package yaml-mode
    :mode 
-     ("\\.yml$" . cperl-mode)
+     ("\\.yml$" . yaml-mode)
   )
 #+end_src
 
@@ -1812,7 +1946,8 @@ file using the `org-babel-lob-ingest' function.
   (use-package projectile
     :defer t
     :config
-    (projectile-global-mode)
+    (projectile-mode +1)
+    (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
     (add-to-list 'projectile-project-root-files ".gitignore")
     (add-to-list 'projectile-project-root-files "PBC.xml")
     )
@@ -1867,18 +2002,6 @@ file using the `org-babel-lob-ingest' function.
 
 #+END_SRC
 
-** Hydra
-#+BEGIN_SRC emacs-lisp
-(use-package hydra
-  :defer t
-  :config
-  (defhydra hydra-zoom (global-map "<f2>")
-    "zoom"
-    ("g" text-scale-increase "in")
-    ("l" text-scale-decrease "out")))
-
-
-#+END_SRC
 ** Ivy
 #+BEGIN_SRC emacs-lisp
 (use-package ivy

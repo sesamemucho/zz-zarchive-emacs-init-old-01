@@ -20,10 +20,27 @@
 ;;     (package-install (elt (cdr (assoc 'org-plus-contrib package-archive-contents)) 0))
 ;;     (package-install (elt (cdr (assoc 'use-package package-archive-contents)) 0))))
 ;; (assoc-delete-all 'org package--builtins)
+
+;; straight brings in just too much stuff (in repos)
+;; (defvar bootstrap-version)
+;; (let ((bootstrap-file
+;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+;;       (bootstrap-version 5))
+;;   (unless (file-exists-p bootstrap-file)
+;;     (with-current-buffer
+;;         (url-retrieve-synchronously
+;;          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+;;          'silent 'inhibit-cookies)
+;;       (goto-char (point-max))
+;;       (eval-print-last-sexp)))
+;;   (load bootstrap-file nil 'nomessage))
+
+(package-initialize)
 (add-to-list 'load-path (expand-file-name "startup/use-package" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "startup/bind-key" user-emacs-directory))
 (require 'use-package)
 (setq use-package-always-ensure nil)
+;;(load-library 'org)
 (use-package org)
 ;;(defcustom ssmm/cfg-file (concat user-emacs-directory "config")
 (setq ssmm/cfg-dir "/home/bob/.emacs.d/")

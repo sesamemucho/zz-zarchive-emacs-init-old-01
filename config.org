@@ -707,15 +707,6 @@ git.
   (selected-global-mode 1))
 #+end_src
 
-** Pinboard
-"Pinboard is a bookmarking website for introverted people in a hurry."
-#+begin_src emacs-lisp
-  (use-package pinboard-list
-  :commands pinboard-list-bookmarks
-  :config
-  (setq pinboard-api-token "grumpydog:D2F6E5673E8251BD9E80"))
-#+end_src
-
 ** Hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
@@ -796,7 +787,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
              (after-init . org-roam-mode)
              ;;:straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
              :custom
-             (org-roam-directory "/home/bob/org/roam/")
+             (org-roam-directory (expand-file-name "~/org/roam/"))
              :bind (:map org-roam-mode-map
                      (("C-c n l" . org-roam)
                       ("C-c n f" . org-roam-find-file)
@@ -820,7 +811,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
   (deft-default-extension "org")
-  (deft-directory "/home/bob/org/roam/"))
+  (deft-directory (expand-file-name "~/org/roam/")))
 #+end_export
 
 **** Org-journal
@@ -834,7 +825,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
   :custom
   (org-journal-date-prefix "#+TITLE: ")
   (org-journal-file-format "%Y-%m-%d.org")
-  (org-journal-dir "/home/bob/org/roam/")
+  (org-journal-dir (expand-file-name "~/org/roam/"))
   (org-journal-date-format "%A, %d %B %Y"))
 #+end_export
 
@@ -1693,19 +1684,6 @@ directory) file for information on the functions, and see
 Code blocks can be loaded into the library of babel from any Org-mode
 file using the `org-babel-lob-ingest' function.
 
-*** org-trello
-; key 2466d85da34bb093fdd54326a0cda6d8
-#+begin_src emacs-lisp
-    (use-package org-trello
-      :defer t
-      :config
-      (custom-set-variables '(org-trello-files '(
-      "/home/bob/org/pim/trello/air_conditioning.org"
-      "/home/bob/org/pim/trello/roof.org"
-      "/home/bob/org/pim/trello/solar.org"
-      )))
-    )
-#+end_src
 ** Compilation mode
 #+begin_src emacs-lisp
   (add-to-list 'compilation-error-regexp-alist-alist
@@ -1870,50 +1848,54 @@ file using the `org-babel-lob-ingest' function.
 #+end_src
 ** Python mode
 #+begin_src emacs-lisp
-      (use-package sphinx-doc
-        :defer t)
+        (use-package sphinx-doc
+          :defer t)
 
-      (use-package python-mode
-        ;;(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-        ;;(add-to-list 'interpreter-mode-alist '("python" . python-mode))
-      :preface
+        (use-package python-mode
+          ;;(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+          ;;(add-to-list 'interpreter-mode-alist '("python" . python-mode))
+        :preface
 
-        (defun my-python-mode-hook ()
-          (setq indent-tabs-mode nil)
-          (setq py-indent-offset 4)
-          (setq whitespace-style '(face trailing lines space-before-tab indentation space-after-tab))
-          (whitespace-mode t)
-          )
+          (defun my-python-mode-hook ()
+            (setq indent-tabs-mode nil)
+            (setq py-indent-offset 4)
+            (setq whitespace-style '(face trailing lines space-before-tab indentation space-after-tab))
+            (whitespace-mode t)
+            (pyenv-mode)
+            )
 
-      :hook (python-mode (my-python-mode-hook . blacken-mode))
-    ;; make sure we have lsp-imenu everywhere we have LSP
-  ;  (require 'lsp-imenu)
-  ;  (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)  
-    ;; get lsp-python-enable defined
-    ;; NB: use either projectile-project-root or ffip-get-project-root-directory
-    ;;     or any other function that can be used to find the root directory of a project
-  ;  (lsp-define-stdio-client lsp-python "python"
-  ;                           #'projectile-project-root
-  ;                           '("pyls"))
+        :hook (python-mode (my-python-mode-hook . blacken-mode))
+      ;; make sure we have lsp-imenu everywhere we have LSP
+    ;  (require 'lsp-imenu)
+    ;  (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)  
+      ;; get lsp-python-enable defined
+      ;; NB: use either projectile-project-root or ffip-get-project-root-directory
+      ;;     or any other function that can be used to find the root directory of a project
+    ;  (lsp-define-stdio-client lsp-python "python"
+    ;                           #'projectile-project-root
+    ;                           '("pyls"))
 
-    ;; make sure this is activated when python-mode is activated
-    ;; lsp-python-enable is created by macro above 
-  ;  (add-hook 'python-mode-hook
-  ;            (lambda ()
-  ;              (lsp-python-enable)))
-    :after sphinx-doc
-  )
+      ;; make sure this is activated when python-mode is activated
+      ;; lsp-python-enable is created by macro above 
+    ;  (add-hook 'python-mode-hook
+    ;            (lambda ()
+    ;              (lsp-python-enable)))
+      :after sphinx-doc
+    )
 
-  ;  (add-hook 'python-mode-hook 'jedi:setup)
-  ;  (setq jedi:complete-on-dot t) ; optional
+  (use-package elpy
+    :init
+    (advice-add 'python-mode :before 'elpy-enable))
+    ;  (add-hook 'python-mode-hook 'jedi:setup)
+    ;  (setq jedi:complete-on-dot t) ; optional
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package pyvenv
-  :defer t
-  :config
-    (add-hook 'pyvenv-post-activate-hooks 'pyvenv-restart-python)
-  )
+  ;; (use-package pyvenv
+  ;; :defer t
+  ;; :config
+  ;;   (add-hook 'pyvenv-post-activate-hooks 'pyvenv-restart-python)
+  ;; )
 #+end_src
 #+begin_src emacs-lisp
 ;    (with-package elpy
@@ -2148,7 +2130,7 @@ file using the `org-babel-lob-ingest' function.
             (let ((default-directory elisp-dir))
               (normal-top-level-add-subdirs-to-load-path)))
           ;; load system-specific config
-          (sk-load system-name)
+          (sk-load (system-name))
           ;; load user-specific config
           (sk-load user-login-name)
           ;; load any files in the user's directory

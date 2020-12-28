@@ -16,3 +16,4 @@ transient
 network-security.data
 *.elc
 *~
+.#recentf

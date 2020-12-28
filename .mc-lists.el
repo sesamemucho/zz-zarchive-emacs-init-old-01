@@ -3,10 +3,14 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+        counsel-M-x
+        ignore
+        kill-region
         org-beginning-of-line
         org-delete-char
         org-end-of-line
         org-self-insert-command
+        phi-search
         ))
 
 (setq mc/cmds-to-run-once

@@ -748,6 +748,21 @@ git.
   ;;  (load-library "org-macs")
   ;;  (load-library "org-src")
   ;;
+   ;; A default name to give context to some of the elisp farther down.
+   ;; It generally gets changed in a system or user file.
+   (setq ssmm-orgfiles-dir (concat ssmm/true-home "org/"))
+
+   (defvar ssmm-org-main-file (concat ssmm-orgfiles-dir "organizer.org") "Path to main org-mode file")
+   (defvar ssmm-org-index-file (concat ssmm-orgfiles-dir "index.org") "Path to GTD org-mode file")
+   (defvar ssmm-org-tickler-file (concat ssmm-orgfiles-dir "tickler.org") "Path to Tickler org-mode file")
+   (defvar ssmm-org-clippings-file (concat ssmm-orgfiles-dir "clippings.org") "Path to clippings org-mode file")
+   (defvar ssmm-org-contacts-file (concat ssmm-orgfiles-dir "contacts.org") "Path to contacts org-mode file")
+
+   (defvar ssmm-org-main-buffer (file-name-nondirectory ssmm-org-main-file) "Buffer name for main org-mode file")
+   (defvar ssmm-org-roam-dir (concat ssmm-orgfiles-dir "roam/"))
+   (setq org-agenda-files (concat ssmm-orgfiles-dir "org-agenda-files.txt")) 
+
+
 #+end_src
 
 Configuration for the eminently useful [[http://orgmode.org/][Org Mode]].
@@ -794,7 +809,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
              (after-init . org-roam-mode)
              ;;:straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
              :custom
-             (org-roam-directory (expand-file-name "~/org/roam/"))
+             (org-roam-directory ssmm-org-roam-dir)
              :bind (:map org-roam-mode-map
                      (("C-c n l" . org-roam)
                       ("C-c n f" . org-roam-find-file)
@@ -818,7 +833,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
   (deft-default-extension "org")
-  (deft-directory (expand-file-name "~/org/roam/")))
+  (deft-directory ssmm-org-roam-dir))
 #+end_export
 
 **** Org-journal
@@ -832,7 +847,7 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
   :custom
   (org-journal-date-prefix "#+TITLE: ")
   (org-journal-file-format "%Y-%m-%d.org")
-  (org-journal-dir (expand-file-name "~/org/roam/"))
+  (org-journal-dir ssmm-org-roam-dir)
   (org-journal-date-format "%A, %d %B %Y"))
 #+end_export
 
@@ -872,7 +887,7 @@ annotation of documents (PDF, EPUB etc.) within Org-mode.
   :after org
   :config
   (setq org-noter-default-notes-file-names '("noter.org"))
-  (setq org-noter-notes-search-path '("~/org/notes"))
+  (setq org-noter-notes-search-path '(concat ssmm-orgfiles-dir "notes"))
 )
 
 #+end_src
@@ -948,56 +963,52 @@ TODOs, called “habits”.»
 
 #+begin_src emacs-lisp
 
-  ;; Automatically tracks when TODO items are DONEd.
-  (setq org-log-done 'time)
+   ;; Automatically tracks when TODO items are DONEd.
+   (setq org-log-done 'time)
 
-  ;; A default name to give context to some of the elisp farther down.
-  ;; It generally gets changed in a system or user file.
-  (setq ssmm-org-main-file (expand-file-name "~/org/organizer.org"))
+  (defun ssmm-org-make-checkbox ()
+    "Make this line into a checkbox"
+    (interactive)
+    (beginning-of-line)
+    (insert " - [ ] "))
 
- (defun ssmm-org-make-checkbox ()
-   "Make this line into a checkbox"
-   (interactive)
-   (beginning-of-line)
-   (insert " - [ ] "))
+  (defun ssmm-org-auto-fill ()
+    (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
+    )
 
- (defun ssmm-org-auto-fill ()
-   (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
-   )
+  (defun my-org-mode-hook ()
+    (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
+    (local-set-key (kbd "C-<f9>") 'org-metaright)
+    (ssmm-org-auto-fill)
+    )
 
- (defun my-org-mode-hook ()
-   (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
-   (local-set-key (kbd "C-<f9>") 'org-metaright)
-   (ssmm-org-auto-fill)
-   )
+  (add-hook 'org-mode-hook 'my-org-mode-hook t)
+  ;(setq prelude-org-mode-hook nil)
 
- (add-hook 'org-mode-hook 'my-org-mode-hook t)
- ;(setq prelude-org-mode-hook nil)
+     (defun ssmm-org-make-checkbox ()
+       "Make this line into a checkbox"
+       (interactive)
+       (beginning-of-line)
+       (insert " - [ ] "))
 
-    (defun ssmm-org-make-checkbox ()
-      "Make this line into a checkbox"
-      (interactive)
-      (beginning-of-line)
-      (insert " - [ ] "))
+     (defun ssmm-org-auto-fill ()
+       (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
+       )
 
-    (defun ssmm-org-auto-fill ()
-      (if (string-match-p "^[0-9]+\.org" (buffer-name)) (auto-fill-mode 1))
-      )
+     (defun my-org-mode-hook ()
+       (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
+       (local-set-key (kbd "C-<f9>") 'org-metaright)
+       (ssmm-org-auto-fill)
+       )
 
-    (defun my-org-mode-hook ()
-      (local-set-key (kbd "C-c C-<f9>") 'ssmm-org-make-checkbox)
-      (local-set-key (kbd "C-<f9>") 'org-metaright)
-      (ssmm-org-auto-fill)
-      )
+     (add-hook 'org-mode-hook 'my-org-mode-hook t)
+     ;(setq prelude-org-mode-hook nil)
 
-    (add-hook 'org-mode-hook 'my-org-mode-hook t)
-    ;(setq prelude-org-mode-hook nil)
-
-    (defun ssmm/org-open-other-frame ()
-      "Jump to bookmark in another frame. See `bookmark-jump' for more."
-      (interactive)
-      (let ((org-link-frame-setup (acons 'file 'find-file-other-frame org-link-frame-setup)))
-        (org-open-at-point)))
+     (defun ssmm/org-open-other-frame ()
+       "Jump to bookmark in another frame. See `bookmark-jump' for more."
+       (interactive)
+       (let ((org-link-frame-setup (acons 'file 'find-file-other-frame org-link-frame-setup)))
+         (org-open-at-point)))
 
 #+end_src
 
@@ -1496,52 +1507,71 @@ From
 *** Capturing
 
 #+begin_src emacs-lisp
-      (setq org-capture-templates '(("t" "Todo [inbox]" entry
-                                     (file+headline "~/org/pim/inbox.org" "Tasks")
-                                     "* TODO %i%?")
-                                    ("T" "Tickler" entry
-                                     (file+headline "~/org/pim/tickler.org" "Tickler")
-                                     "* %i%? \n %U")
-                                    ("j" "Journal" entry (file+datetree ssmm-org-main-file)
-                                     "* %?\nEntered on %T\n  %i\n" :clock-keep t)
-                                    ("p" "New project entry" entry (file+olp ssmm-org-main-file "Projects")
-                                     "* %?\nEntered on %T\n" :unnarrowed t)
-                                    ("Q" "quote org capture" entry
-                                     (file+headline "~/org/pim/clippings.org" "Unsorted")
-                                     "* %?%:description Added %U
-,#+BEGIN_QUOTE
-%x
-,#+END_QUOTE" :immediate-finish t)
-)
-)
+          (setq org-capture-templates '(("t" "Todo [inbox]" entry
+                                         (file+headline ssmm-org-index-file "Tasks")
+                                         "* TODO %i%?")
+                                        ("T" "Tickler" entry
+                                         (file+headline ssmm-org-tickler-file "Tickler")
+                                         "* %i%? \n %U")
+                                        ("j" "Journal" entry (file+datetree ssmm-org-main-file)
+                                         "* %?\nEntered on %T\n  %i\n" :clock-keep t)
+                                        ("p" "New project entry" entry (file+olp ssmm-org-main-file "Projects")
+                                         "* %?\nEntered on %T\n" :unnarrowed t)
+                                        ("Q" "quote org capture" entry
+                                         (file+headline ssmm-org-clippings-file "Unsorted")
+                                         "* %?%:description Added %U
+    ,#+BEGIN_QUOTE
+    %x
+    ,#+END_QUOTE" :immediate-finish t)
+    )
+    )
 
-          (global-set-key "\C-cl" 'org-store-link)
-          (global-set-key "\C-cc" 'org-capture)
-          (global-set-key "\C-ca" 'org-agenda)
-          (global-set-key "\C-cb" 'org-iswitchb)
+              (global-set-key "\C-cl" 'org-store-link)
+              (global-set-key "\C-cc" 'org-capture)
+              (global-set-key "\C-ca" 'org-agenda)
+              (global-set-key "\C-cb" 'org-iswitchb)
 
-    (setq org-refile-targets '(("~/org/pim/gtd.org" :maxlevel . 3)
-                               ("~/org/pim/someday.org" :level . 1)
-                               ("~/org/pim/tickler.org" :maxlevel . 2)))
+        (setq org-refile-targets '((ssmm-org-main-file :maxlevel . 3)
+                                   (ssmm-org-tickler-file :maxlevel . 2)))
 
-        (defun ssmm-get-projects ()
-        "Get a list of current projects.
-         This will be a list of the 2nd-level headings under a 1st-level
-         heading named 'Projects', in `ssmm-org-main-file'.
-         "
-          (interactive)
-          (with-current-buffer (file-name-nondirectory ssmm-org-main-file)
-            (org-element-map (org-element-parse-buffer) 'headline
-              (lambda (headline)
-                (let* ((parent (org-element-property :parent headline))
-                       (foo1 (org-element-property :title parent)))
-                                                ;(and foo1 (message (format "Got %s" (substring-no-properties (car foo1)))))
-                  (and (eq (org-element-type parent) 'headline)
-                       (string= (org-element-property :raw-value parent) "Projects")
-                       (= (org-element-property :level parent) 1)
-                       (org-element-property :raw-value headline)
-                       )))))
-          )
+        (defun ssmm-get-project-org-file ()
+        "If the .dir-locals.el file (or other) has defined project-org-file, use it,
+         otherwise, look up the directory tree for the first one."
+          (or (and (boundp 'project-org-file)
+                   (symbol-value 'project-org-file))
+              (concat (locate-dominating-file (buffer-file-name) "project.org") "project.org")
+              ))
+
+          (add-to-list 'org-capture-templates `("c" "Command" entry
+                                                (file+olp+datetree ssmm-get-project-org-file
+                                                                   "Commands")
+                                                "* %?\n#+begin_src sh\n%i\n#+end_src\n"))
+
+          (add-to-list 'org-capture-templates `("p" "Project Notes" entry
+                                                (file+olp+datetree ssmm-get-project-org-file
+                                                                   "Notes")
+                                                "* %?\n"))
+          (put 'project-org-file 'safe-local-variable #'stringp)
+
+
+            (defun ssmm-get-projects ()
+            "Get a list of current projects.
+             This will be a list of the 2nd-level headings under a 1st-level
+             heading named 'Projects', in `ssmm-org-main-file'.
+             "
+              (interactive)
+              (with-current-buffer (file-name-nondirectory ssmm-org-main-file)
+                (org-element-map (org-element-parse-buffer) 'headline
+                  (lambda (headline)
+                    (let* ((parent (org-element-property :parent headline))
+                           (foo1 (org-element-property :title parent)))
+                                                    ;(and foo1 (message (format "Got %s" (substring-no-properties (car foo1)))))
+                      (and (eq (org-element-type parent) 'headline)
+                           (string= (org-element-property :raw-value parent) "Projects")
+                           (= (org-element-property :level parent) 1)
+                           (org-element-property :raw-value headline)
+                           )))))
+              )
 
 
 #+end_src
@@ -1564,7 +1594,7 @@ With
 :END:")
   :config
 (add-to-list 'org-capture-templates
-   `("c" "Contact" entry (file+headline "~/org/pim/contacts.org" "Friends"),
+   `("C" "Contact" entry (file+headline ssmm-org-contacts-file "Friends"),
       my/org-contacts-template
       :empty-lines 1))
 

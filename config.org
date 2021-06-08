@@ -95,55 +95,67 @@
 
 This is for values that should be set before anything else.
 #+begin_src emacs-lisp
-  (setq debug-on-error t)
-  (add-to-list 'load-path (concat ssmm/cfg-dir "lisp"))
-  ;;(add-to-list 'default-frame-alist '(font . "Inconsolata-14" ))
-  (add-to-list 'default-frame-alist '(font . "-ADBO-Source Code Variable-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1" ))
-
-
-  (menu-bar-mode -1)
-  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
-  (blink-cursor-mode -1)
-  (electric-indent-mode -1)
-  (setq backup-inhibited t
-        auto-save-default nil
-        inhibit-startup-message t
-        initial-scratch-message nil
-        wdired-allow-to-change-permissions t
-        dabbrev-case-distinction nil
-        dabbrev-case-fold-search nil
-        echo-keystrokes 0.1
-        delete-active-region nil
-        vc-follow-symlinks t
-        disabled-command-function nil
-        custom-file (make-temp-file "emacs-custom")
-        truncate-lines t
-        initial-scratch-message ""
-        visible-bell t)
-
+    (setq debug-on-error t)
+    ;; UTF-8 as default encoding
+    (set-language-environment "UTF-8")
+    (add-to-list 'load-path (concat ssmm/cfg-dir "lisp"))
+    ;;(add-to-list 'default-frame-alist '(font . "Inconsolata-14" ))
+    (add-to-list 'default-frame-alist '(font . "-ADBO-Source Code Variable-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1" ))
+  
+  
+    (menu-bar-mode -1)
+    (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+    (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+    (blink-cursor-mode -1)
+    (electric-indent-mode -1)
+    (setq backup-inhibited t
+          auto-save-default nil
+          inhibit-startup-message t
+          initial-scratch-message nil
+          wdired-allow-to-change-permissions t
+          dabbrev-case-distinction nil
+          dabbrev-case-fold-search nil
+          echo-keystrokes 0.1
+          delete-active-region nil
+          vc-follow-symlinks t
+          disabled-command-function nil
+          custom-file (make-temp-file "emacs-custom")
+          truncate-lines t
+          initial-scratch-message ""
+          visible-bell t)
+  
     (when (window-system)
       (tool-bar-mode 0)               ;; Toolbars were only cool with XEmacs
       (when (fboundp 'horizontal-scroll-bar-mode)
         (horizontal-scroll-bar-mode -1))
       (scroll-bar-mode -1))            ;; Scrollbars are waste screen estate
-
-   (add-hook 'dired-mode-hook #'toggle-truncate-lines)
-  (defalias 'yes-or-no-p 'y-or-n-p)
-       ;;; Packages
-  (require 'package)
-  ;;(require 'package-helper)
-  (add-to-list 'package-archives
-       ;;'("melpa" . "https://melpa.org/packages/") t)
-       '("melpa" . "https://stable.melpa.org/packages/") t)
-  (add-to-list 'package-archives
-    '("org" . "http://orgmode.org/elpa/") t)
-  ;; (add-to-list 'package-archives
-  ;;              '("marmalade" . "http://marmalade-repo.org/packages/") t)
-  (setq package-enable-at-startup nil)
-  (setq package-blacklist '(batch-mode))
-  (package-initialize)
+  
+    (add-hook 'dired-mode-hook #'toggle-truncate-lines)
+    (defalias 'yes-or-no-p 'y-or-n-p)
+           ;;; Packages
+    (require 'package)
+    ;;(require 'package-helper)
+    ;; (setq package-archives (list
+    ;;             '("org" . "https://orgmode.org/elpa/")
+    ;;             '("melpa-stable" . "https://stable.melpa.org/packages/")))
+  
+    (add-to-list 'package-archives
+                 '("org" . "https://orgmode.org/elpa/") t)
+  
+  ;               '("org" . "http://orgmode.org/elpa/") t)
+    (add-to-list 'package-archives
+                 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+  
+                 ;;'("melpa" . "https://melpa.org/packages/") t)
+                 ;;'("melpa" . "https://stable.melpa.org/packages/") t)
+    ;; (add-to-list 'package-archives
+    ;;              '("marmalade" . "http://marmalade-repo.org/packages/") t)
+    (setq package-enable-at-startup nil)
+    (setq package-blacklist '(batch-mode))
+    (package-initialize)
 #+end_src
+
+#+RESULTS:
 
 #+begin_src emacs-lisp
 #+end_src
@@ -804,22 +816,84 @@ From the org-roam Ecosystem: https://org-roam.readthedocs.io/en/develop/ecosyste
 
 **** org-roam
      #+begin_src emacs-lisp
-       (use-package org-roam
-             :hook 
-             (after-init . org-roam-mode)
-             ;;:straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
-             :custom
-             (org-roam-directory ssmm-org-roam-dir)
-             :bind (:map org-roam-mode-map
-                     (("C-c n l" . org-roam)
-                      ("C-c n f" . org-roam-find-file)
-                      ("C-c n b" . org-roam-switch-to-buffer)
-                      ("C-c n g" . org-roam-show-graph))
-                     :map org-mode-map
-                     (("C-c n i" . org-roam-insert))))
+       (add-to-list 'load-path "~/Projects/readonly-repos/org-roam")
+       (use-package emacsql-sqlite3
+       )
+     #+end_src
+     #+begin_src emacs-lisp
+              (use-package org-roam
+                :after org
+                :config
+                (setq org-roam-directory ssmm-org-roam-dir)
+                (setq org-roam-file-extensions '("org"))
+                (org-roam-setup)
+              
+                (setq org-roam-capture-templates
+                      '(("d" "default" plain "%?"
+                       :if-new
+                       (file+head "${slug}.org"
+                                  "#+title: ${title}\n")
+                       :immediate-finish t
+                       :jump-to-captured t
+                       :unnarrowed t)))
+                   :bind (;("C-c n f" . org-roam-find-file)
+                          ;:map org-roam-mode-map
+                           ("C-c n /" . org-roam-node-find)
+                            ("C-c n c" . org-roam-capture)
+                            ("C-c n i" . org-roam-node-insert)
+                            ("C-c n r" . org-roam-buffer-toggle)))
+                           ;; (("C-c n l" . org-roam)
+                           ;;  ("C-c n f" . org-roam-find-file)
+                           ;;  ("C-c n b" . org-roam-switch-to-buffer)
+                           ;;  ("C-c n g" . org-roam-show-graph))
+              
+                     ;; (load-library "org-roam")
+                     ;; I have trouble with Ripgrep on Windows
+                     ;; Commit 0163461f adds default user option for
+                     ;; sections. You no longer need to set the variable explicitly
+                     ;; (setq org-roam-mode-sections
+                     ;;      (list #'org-roam-backlinks-insert-section
+                     ;;            #'org-roam-reflinks-insert-section))
+                     ;;#'org-roam-unlinked-references-insert-section))
+              
+     #+end_src
+     #+begin_src emacs-lisp
+;       (use-package org-roam                   ;
+;             :hook 
+;             (after-init . org-roam-mode)
+;             (make-directory ssmm-org-roam-dir t)
+;             ;;:straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+;             :custom
+;             (org-id-link-to-org-use-id t)
+;             (org-roam-directory ssmm-org-roam-dir)
+;             :bind (:map org-roam-mode-map
+;                     (("C-c n l" . org-roam)
+;                      ("C-c n f" . org-roam-find-file)
+;                      ("C-c n b" . org-roam-switch-to-buffer)
+;                      ("C-c n g" . org-roam-show-graph))
+;                     :map org-mode-map
+;                     (("C-c n i" . org-roam-insert))))
 
      #+end_src
-
+     #+begin_src emacs-lisp
+       (require 'org-roam-protocol)            ;
+           ;;   (setq org-roam-capture-ref-templates
+           ;;         '(("r" "ref" plain (function org-roam-capture--get-point)
+           ;;            "%?"
+           ;;            :file-name "websites/${slug}"
+           ;;            :head "#+TITLE: ${title}
+           ;; #+ROAM_KEY: ${ref}
+           ;; - source :: ${ref}"
+           ;;            :unnarrowed t)))
+           ;;   (setq org-roam-capture-ref-templates
+           ;;         '(("r" "ref" plain (function org-roam-capture--get-point)
+           ;;            "%?"
+           ;;            :file-name "websites/${slug}"
+           ;;            :head "#+TITLE: ${title}
+           ;; #+ROAM_KEY: ${ref}
+           ;; - source :: ${ref}"
+           ;;            :unnarrowed t)))
+     #+end_src
 **** Deft
 
 [[https://jblevins.org/projects/deft/][Deft]] provides a nice interface for browsing and filtering org-roam notes.
@@ -1515,6 +1589,8 @@ From
                                          "* %i%? \n %U")
                                         ("j" "Journal" entry (file+datetree ssmm-org-main-file)
                                          "* %?\nEntered on %T\n  %i\n" :clock-keep t)
+                                        ("J" "JournalJJ" entry (file+olp+datetree ssmm-org-main-file)
+                                         "* %?\nEntered on %T\nurl %:link  %i\n" :clock-keep t)
                                         ("p" "New project entry" entry (file+olp ssmm-org-main-file "Projects")
                                          "* %?\nEntered on %T\n" :unnarrowed t)
                                         ("Q" "quote org capture" entry
